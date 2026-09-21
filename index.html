@@ -158,6 +158,9 @@ input[type=date]{ min-width:0; padding:10px 8px; }
       <input type="file" accept="image/*" id="photoInput" onchange="onPhoto(event)">
     </div>
 
+    <label>브랜드 (선택)</label>
+    <input type="text" id="fBrand" placeholder="예: 랑끄">
+
     <label>제품명</label>
     <input type="text" id="fName" placeholder="예: 토너 패드">
     <div class="err" id="errName">제품명을 입력해주세요.</div>
@@ -206,7 +209,6 @@ input[type=date]{ min-width:0; padding:10px 8px; }
     <div>
       <span class="chk on" data-d="30" onclick="toggleNotify(30)">D-30</span>
       <span class="chk on" data-d="7" onclick="toggleNotify(7)">D-7</span>
-      <span class="chk" data-d="1" onclick="toggleNotify(1)">D-1</span>
     </div>
 
     <label>메모 (선택)</label>
@@ -227,14 +229,14 @@ const STORE_KEY='cosmetics-expiry-items';
 let items = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
 if(items.length===0){
   items = [
-    {id:'seed1', name:'랑끄 워터팡 누드시킨 파데 크림', category:'색조', status:'unopened', method:'date', directDate:'2027-02-16', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed2', name:'마티스 글리코아미노글리칸즈', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-03-11', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed3', name:'메노킨 30초 퀵 버블 마스크 클리어', category:'클렌징', status:'inuse', method:'date', directDate:'2027-09-26', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed4', name:'마녀공장 비피다 바이옴 아쿠아 베리어 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-10-15', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed5', name:'썸블라썸 스피큘러 아이백 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-11-23', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed6', name:'라센느 로에 큐어 인텐시브 이엑스 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-02', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed7', name:'성분에디터 그린토마토 포어 리프팅 앰플토너', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-11', notifyDays:[30,7], photo:null, usedUp:false},
-    {id:'seed8', name:'시드물 웰빙 녹차 판테놀 스킨', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-21', notifyDays:[30,7], photo:null, usedUp:false}
+    {id:'seed1', name:'랑끄 워터팡 누드시킨 파데 크림', category:'색조', status:'unopened', method:'date', directDate:'2027-02-16', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23f3ece0%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%23c9a97a%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%23c9a97a%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed2', name:'마티스 글리코아미노글리칸즈', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-03-11', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23e6dcf0%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%238f7cb8%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%238f7cb8%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed3', name:'메노킨 30초 퀵 버블 마스크 클리어', category:'클렌징', status:'inuse', method:'date', directDate:'2027-09-26', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23dfe8d3%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%237fa05a%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%237fa05a%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed4', name:'마녀공장 비피다 바이옴 아쿠아 베리어 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-10-15', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23f7dede%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%23d98a8a%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%23d98a8a%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed5', name:'썸블라썸 스피큘러 아이백 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2026-10-01', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23ffe9c7%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%23d9a24a%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%23d9a24a%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed6', name:'라센느 로에 큐어 인텐시브 이엑스 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-02', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23d9ecec%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%235aa3a3%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%235aa3a3%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed7', name:'성분에디터 그린토마토 포어 리프팅 앰플토너', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-11', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23ece0f3%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%23a37cc9%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%23a37cc9%27/%3E%3C/svg%3E', usedUp:false},
+    {id:'seed8', name:'시드물 웰빙 녹차 판테놀 스킨', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-21', notifyDays:[30,7], photo:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2080%2080%27%3E%3Crect%20width%3D%2780%27%20height%3D%2780%27%20rx%3D%2714%27%20fill%3D%27%23e0eef7%27/%3E%3Crect%20x%3D%2730%27%20y%3D%2716%27%20width%3D%2720%27%20height%3D%2710%27%20rx%3D%273%27%20fill%3D%27%235a8fbd%27/%3E%3Crect%20x%3D%2722%27%20y%3D%2726%27%20width%3D%2736%27%20height%3D%2740%27%20rx%3D%279%27%20fill%3D%27%235a8fbd%27/%3E%3C/svg%3E', usedUp:false}
   ];
   localStorage.setItem(STORE_KEY, JSON.stringify(items));
 }
@@ -364,7 +366,7 @@ function cardHtml(it, isDone){
     <div style="display:flex; align-items:center; gap:12px">
       ${thumb}
       <div style="flex:1">
-        <p class="item-name">${escapeHtml(it.name)}</p>
+        <p class="item-name">${it.brand ? `<span style="color:var(--sub); font-weight:400">${escapeHtml(it.brand)}</span> ` : ''}${escapeHtml(it.name)}</p>
         <p class="item-sub">${it.category} · ${it.status==='unopened'?'미개봉':'<span style="color:var(--accent2-strong); font-weight:700">사용중</span>'}</p>
       </div>
       <div style="font-size:11px; color:var(--sub); white-space:nowrap; flex:0 0 auto">${isDone ? '사용완료' : formatDate(exp)+'까지'}</div>
@@ -389,6 +391,7 @@ function openModal(id){
     const it = items.find(i=>i.id===id);
     document.getElementById('modalTitle').textContent='제품 수정';
     document.getElementById('fName').value = it.name;
+    document.getElementById('fBrand').value = it.brand || '';
     document.getElementById('fCategory').value = it.category;
     setStatus(it.status);
     setMethod(it.method);
@@ -410,6 +413,7 @@ function openModal(id){
   } else {
     document.getElementById('modalTitle').textContent='제품 등록';
     document.getElementById('fName').value='';
+    document.getElementById('fBrand').value='';
     document.getElementById('fCategory').value='스킨케어';
     setStatus('unopened');
     setMethod('pao');
@@ -508,7 +512,8 @@ function save(){
 
   const data = {
     id: editingId || ('id'+Date.now()),
-    name, category: document.getElementById('fCategory').value,
+    name, brand: document.getElementById('fBrand').value.trim(),
+    category: document.getElementById('fCategory').value,
     status: curStatus, method: curMethod,
     openDate, paoMonths: curPao, directDate,
     notifyDays: [...curNotify], photo: photoData,
@@ -560,12 +565,12 @@ function parseCSV(text){
   return rows.filter(r => r.some(v=>v && v.trim()!==''));
 }
 function exportData(){
-  const header = ['화장품명','카테고리','유통기한','상태','메모'];
+  const header = ['브랜드','화장품명','카테고리','유통기한','상태','메모'];
   const rows = items.map(it=>{
     const exp = getExpiry(it);
     const y=exp.getFullYear(), m=String(exp.getMonth()+1).padStart(2,'0'), d=String(exp.getDate()).padStart(2,'0');
     const statusLabel = it.usedUp ? '사용완료' : (it.status==='unopened' ? '미개봉' : '개봉');
-    return [it.name, it.category, `${y}-${m}-${d}`, statusLabel, it.memo || ''];
+    return [it.brand || '', it.name, it.category, `${y}-${m}-${d}`, statusLabel, it.memo || ''];
   });
   const csv = [header, ...rows].map(r=>r.map(csvEscape).join(',')).join('\r\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
@@ -594,6 +599,7 @@ function importData(e){
       const expIdx = findCol(['유통기한','사용기한']);
       const statusIdx = findCol(['상태','개봉여부']);
       const memoIdx = findCol(['메모']);
+      const brandIdx = findCol(['브랜드']);
       if(nameIdx===-1 || expIdx===-1) throw new Error('format');
       const parsed = rows.slice(1).filter(r=>r[nameIdx] && r[nameIdx].trim()).map(r=>{
         const dateStr = r[expIdx] || '';
@@ -603,6 +609,7 @@ function importData(e){
         return {
           id: 'id'+Date.now()+Math.random().toString(36).slice(2,7),
           name: r[nameIdx].trim(),
+          brand: brandIdx>-1 ? (r[brandIdx]||'').trim() : '',
           category: (catIdx>-1 && r[catIdx] && r[catIdx].trim()) || '기타',
           status: statusRaw.includes('미개봉') ? 'unopened' : 'inuse',
           method: 'date', openDate:'', paoMonths:12, directDate,
