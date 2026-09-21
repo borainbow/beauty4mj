@@ -89,6 +89,15 @@ input[type=text],input[type=date],select{
   background:var(--card); color:var(--text); font-size:16px;
 }
 input[type=date]{ min-width:0; padding:10px 8px; }
+input[type=date]::-webkit-datetime-edit,
+input[type=date]::-webkit-datetime-edit-fields-wrapper,
+input[type=date]::-webkit-datetime-edit-text,
+input[type=date]::-webkit-datetime-edit-month-field,
+input[type=date]::-webkit-datetime-edit-day-field,
+input[type=date]::-webkit-datetime-edit-year-field{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif !important;
+  font-size:16px !important;
+}
 .upload{
   display:flex; align-items:center; justify-content:center; gap:8px; height:80px; border-radius:10px;
   border:1px dashed var(--muted); color:var(--sub); font-size:13px; position:relative; overflow:hidden;
@@ -159,7 +168,7 @@ input[type=date]{ min-width:0; padding:10px 8px; }
     </div>
 
     <label>브랜드 (선택)</label>
-    <input type="text" id="fBrand" placeholder="예: 랑끄">
+    <input type="text" id="fBrand">
 
     <label>제품명</label>
     <input type="text" id="fName" placeholder="예: 토너 패드">
