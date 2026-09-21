@@ -14,7 +14,7 @@
   --bg:#fdfaf6; --card:#ffffff; --border:#ece6dd; --text:#2c2c2a; --sub:#8a877e; --muted:#b4b2a9;
   --accent:#7d6fa3; --accent-bg:#efebf5; --accent-text:#453a63;
   --accent2:#8ea055; --accent2-bg:#eef2e2; --accent2-text:#4b5a26;
-  --danger-bg:#fcebeb; --danger-text:#791f1f;
+  --danger-bg:#ffe0e0; --danger-text:#d81e1e;
   --warn-bg:#faeeda; --warn-text:#633806;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
 }
@@ -23,7 +23,7 @@
     --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
     --accent:#b3a5d6; --accent-bg:#352c4a; --accent-text:#dcd3ee;
     --accent2:#b9cf7e; --accent2-bg:#3a4520; --accent2-text:#d8e6b0;
-    --danger-bg:#501313; --danger-text:#f7c1c1;
+    --danger-bg:#5c1414; --danger-text:#ff6b6b;
     --warn-bg:#412402; --warn-text:#fac775;
   }
 }
@@ -31,7 +31,7 @@
   --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
   --accent:#b3a5d6; --accent-bg:#352c4a; --accent-text:#dcd3ee;
   --accent2:#b9cf7e; --accent2-bg:#3a4520; --accent2-text:#d8e6b0;
-  --danger-bg:#501313; --danger-text:#f7c1c1;
+  --danger-bg:#5c1414; --danger-text:#ff6b6b;
   --warn-bg:#412402; --warn-text:#fac775;
 }
 *{box-sizing:border-box}
@@ -56,7 +56,7 @@ main{padding:14px 16px 100px}
 .hint{font-size:12px; color:var(--sub); background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start}
 .hint button{margin-left:auto; border:none; background:none; color:var(--sub); font-size:16px; padding:0 2px; cursor:pointer}
 .section-title{font-size:12px; color:var(--sub); margin:18px 0 8px; font-weight:600}
-.card{display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; margin-bottom:8px; cursor:pointer; border:1px solid var(--border)}
+.card{padding:12px; border-radius:12px; margin-bottom:8px; cursor:pointer; border:1px solid var(--border)}
 .card.neutral{background:var(--card)}
 .card.warn{background:var(--warn-bg); border-color:transparent}
 .card.danger{background:var(--danger-bg); border-color:transparent}
@@ -122,7 +122,7 @@ input[type=text],input[type=date],select{
 
 <footer style="text-align:center; padding:28px 16px calc(26px + var(--safe-b)); color:var(--sub); font-size:12px; border-top:1px solid var(--border); margin-top:8px">
   <div style="font-size:13px; color:var(--text); font-weight:600; letter-spacing:.2px; margin-bottom:2px">🎀 Birthday Gift for MJ</div>
-  <div style="margin-bottom:16px">with💜RAINBOW</div>
+  <div style="margin-bottom:16px">with💜 RAINBOW</div>
   <div style="display:flex; gap:8px; justify-content:center">
     <button class="backup-btn" style="flex:none; padding:7px 14px" onclick="exportData()">CSV 다운로드</button>
     <button class="backup-btn" style="flex:none; padding:7px 14px" onclick="document.getElementById('importInput').click()">CSV 불러오기</button>
@@ -151,8 +151,8 @@ input[type=text],input[type=date],select{
     <select id="fCategory">
       <option value="스킨케어">스킨케어</option>
       <option value="클렌징">클렌징</option>
-      <option value="색조">색조</option>
       <option value="선크림">선크림</option>
+      <option value="색조">색조</option>
       <option value="기타">기타</option>
     </select>
 
@@ -191,11 +191,16 @@ input[type=text],input[type=date],select{
       <span class="chk" data-d="1" onclick="toggleNotify(1)">D-1</span>
     </div>
 
-    <div class="actions">
-      <button class="btn-sub" onclick="closeModal()">취소</button>
+    <label>메모 (선택)</label>
+    <textarea id="fMemo" placeholder="예: 재구매 링크, 향 정보 등" style="width:100%; min-height:60px; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:14px; font-family:inherit; resize:vertical"></textarea>
+
+    <div class="actions" style="flex-direction:column">
       <button class="btn-main" onclick="save()">저장하기</button>
+      <div class="row">
+        <button class="btn-sub" style="flex:1" onclick="closeModal()">취소</button>
+        <button class="btn-sub" id="deleteBtn" style="flex:1; display:none; color:var(--danger-text)" onclick="removeItem()">삭제</button>
+      </div>
     </div>
-    <button class="btn-sub" id="deleteBtn" style="width:100%;margin-top:8px;display:none;color:var(--danger-text)" onclick="removeItem()">삭제</button>
   </div>
 </div>
 
@@ -237,20 +242,16 @@ function ddayOf(it){
   exp.setHours(0,0,0,0);
   return Math.round((exp-today)/86400000);
 }
+function formatDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}.${m}.${day}`;
+}
 
-const CATEGORY_ORDER = ['스킨케어','클렌징','색조'];
+const CATEGORY_ORDER = ['스킨케어','클렌징','선크림','색조'];
 function renderChips(){
   const present = [...new Set(items.map(i=>i.category))];
-  let cats;
-  if(present.length===0){
-    cats = ['전체','스킨케어','클렌징','색조','선크림'];
-  } else {
-    const ordered = [
-      ...CATEGORY_ORDER.filter(c=>present.includes(c)),
-      ...present.filter(c=>!CATEGORY_ORDER.includes(c))
-    ];
-    cats = ['전체', ...ordered];
-  }
+  const extra = present.filter(c=>!CATEGORY_ORDER.includes(c));
+  const cats = ['전체', ...CATEGORY_ORDER, ...extra];
   const box = document.getElementById('chips');
   box.innerHTML = cats.map(c=>
     `<div class="chip ${c===currentFilter?'active':''}" onclick="setFilter('${c}')">${c}</div>`
@@ -282,17 +283,34 @@ function render(){
 
 function cardHtml(it, isDone){
   const dday = ddayOf(it);
+  const exp = getExpiry(it);
   let cls='neutral';
   if(!isDone && dday<=30) cls='danger';
-  const label = isDone ? '사용완료' : (dday<0 ? `D+${-dday}` : `D-${dday}`);
   const thumb = it.photo ? `<img class="thumb" src="${it.photo}">` : `<div class="thumb"></div>`;
-  return `<div class="card ${cls} ${isDone?'done':''}" onclick="openModal('${it.id}')">
-    ${thumb}
-    <div style="flex:1">
-      <p class="item-name">${escapeHtml(it.name)}</p>
-      <p class="item-sub">${it.category} · ${it.status==='unopened'?'미개봉':'사용중'}</p>
+
+  let bar = '';
+  if(!isDone){
+    const barColor = dday<=30 ? 'var(--danger-text)' : 'var(--accent)';
+    const rawPct = Math.max(0, Math.min(60, dday)) / 60 * 100;
+    const pct = Math.max(8, Math.min(92, rawPct));
+    const badgeLabel = dday<0 ? '만료' : (dday===0 ? '오늘' : `${dday}일`);
+    bar = `<div style="margin-top:12px; position:relative; height:20px">
+      <div style="position:absolute; top:50%; left:0; right:0; height:4px; background:var(--border); border-radius:999px; transform:translateY(-50%)"></div>
+      <div style="position:absolute; top:50%; left:0; width:${pct}%; height:4px; background:${barColor}; border-radius:999px; transform:translateY(-50%)"></div>
+      <div style="position:absolute; top:50%; left:${pct}%; transform:translate(-50%,-50%); background:${barColor}; color:#fff; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.15)">${badgeLabel}</div>
+    </div>`;
+  }
+
+  return `<div class="card ${cls} ${isDone?'done':''}" onclick="openModal('${it.id}')" style="flex-direction:column; align-items:stretch">
+    <div style="display:flex; align-items:center; gap:12px">
+      ${thumb}
+      <div style="flex:1">
+        <p class="item-name">${escapeHtml(it.name)}</p>
+        <p class="item-sub">${it.category} · ${it.status==='unopened'?'미개봉':'사용중'}</p>
+      </div>
+      <div style="font-size:11px; color:var(--sub); white-space:nowrap; flex:0 0 auto">${isDone ? '사용완료' : formatDate(exp)+'까지'}</div>
     </div>
-    <div class="dday">${label}</div>
+    ${bar}
   </div>`;
 }
 function escapeHtml(s){ return s.replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
@@ -326,6 +344,7 @@ function openModal(id){
       el.classList.toggle('on', curNotify.includes(d));
     });
     if(it.photo){ photoData = it.photo; document.getElementById('photoPreview').src=it.photo; document.getElementById('photoPreview').style.display='block'; document.getElementById('uploadLabel').style.display='none'; }
+    document.getElementById('fMemo').value = it.memo || '';
   } else {
     document.getElementById('modalTitle').textContent='제품 등록';
     document.getElementById('fName').value='';
@@ -335,6 +354,7 @@ function openModal(id){
     setPao(12);
     document.getElementById('fOpenDate').value = new Date().toISOString().slice(0,10);
     document.getElementById('fDirectDate').value='';
+    document.getElementById('fMemo').value='';
     curNotify = [30,7];
     document.querySelectorAll('.chk').forEach(el=>{
       el.classList.toggle('on', curNotify.includes(parseInt(el.dataset.d)));
@@ -410,6 +430,7 @@ function save(){
     status: curStatus, method: curMethod,
     openDate, paoMonths: curPao, directDate,
     notifyDays: [...curNotify], photo: photoData,
+    memo: document.getElementById('fMemo').value.trim(),
     usedUp: editingId ? (items.find(i=>i.id===editingId).usedUp) : false
   };
   if(editingId){
@@ -457,12 +478,12 @@ function parseCSV(text){
   return rows.filter(r => r.some(v=>v && v.trim()!==''));
 }
 function exportData(){
-  const header = ['화장품명','카테고리','유통기한','상태'];
+  const header = ['화장품명','카테고리','유통기한','상태','메모'];
   const rows = items.map(it=>{
     const exp = getExpiry(it);
     const y=exp.getFullYear(), m=String(exp.getMonth()+1).padStart(2,'0'), d=String(exp.getDate()).padStart(2,'0');
     const statusLabel = it.usedUp ? '사용완료' : (it.status==='unopened' ? '미개봉' : '개봉');
-    return [it.name, it.category, `${y}-${m}-${d}`, statusLabel];
+    return [it.name, it.category, `${y}-${m}-${d}`, statusLabel, it.memo || ''];
   });
   const csv = [header, ...rows].map(r=>r.map(csvEscape).join(',')).join('\r\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
@@ -490,6 +511,7 @@ function importData(e){
       const catIdx = findCol(['카테고리']);
       const expIdx = findCol(['유통기한','사용기한']);
       const statusIdx = findCol(['상태','개봉여부']);
+      const memoIdx = findCol(['메모']);
       if(nameIdx===-1 || expIdx===-1) throw new Error('format');
       const parsed = rows.slice(1).filter(r=>r[nameIdx] && r[nameIdx].trim()).map(r=>{
         const dateStr = r[expIdx] || '';
@@ -503,6 +525,7 @@ function importData(e){
           status: statusRaw.includes('미개봉') ? 'unopened' : 'inuse',
           method: 'date', openDate:'', paoMonths:12, directDate,
           notifyDays:[30,7], photo:null,
+          memo: memoIdx>-1 ? (r[memoIdx]||'').trim() : '',
           usedUp: statusRaw.includes('완료')
         };
       }).filter(it=>it.directDate);
