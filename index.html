@@ -51,6 +51,7 @@ h1{font-size:18px; font-weight:600; margin:0 0 10px}
 .chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px}
 .chip{flex:0 0 auto; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); white-space:nowrap}
 .chip.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+.toggle-btn.active{background:var(--accent2-bg); color:var(--accent2-text); border-color:transparent}
 .search-input{width:100%; margin-bottom:8px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px}
 .backup-btn{flex:1; font-size:12px; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer}
 main{padding:14px 16px 100px}
@@ -87,7 +88,7 @@ input[type=text],input[type=date],select{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
   background:var(--card); color:var(--text); font-size:14px;
 }
-input[type=date]{ min-width:0; padding:10px 6px; font-size:13.5px; }
+input[type=date]{ min-width:0; padding:10px 8px; }
 .upload{
   display:flex; align-items:center; justify-content:center; gap:8px; height:80px; border-radius:10px;
   border:1px dashed var(--muted); color:var(--sub); font-size:13px; position:relative; overflow:hidden;
@@ -110,15 +111,20 @@ input[type=date]{ min-width:0; padding:10px 6px; font-size:13.5px; }
 <body>
 
 <header>
-  <h1>Beauty 4 MJ</h1>
-  <input type="text" id="searchInput" class="search-input" placeholder="🔍 제품 이름으로 검색" oninput="onSearch(event)">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px">
+    <h1 style="margin:0">Beauty 4 MJ</h1>
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 검색" oninput="onSearch(event)" style="margin-bottom:0; width:auto; flex:0 1 150px; text-align:right">
+  </div>
   <div class="chips" id="chips"></div>
-  <button id="inuseToggleBtn" class="chip" style="margin-top:6px" onclick="toggleInuseOnly()">사용중만 보기</button>
+  <button id="inuseToggleBtn" class="chip toggle-btn" style="margin-top:6px" onclick="toggleInuseOnly()">사용중만 보기</button>
 </header>
 
 <main>
   <div class="hint" id="hint">
-    <span>알림은 이 앱을 열어둔 상태에서 확인돼요. iPhone은 공유 버튼 → "홈 화면에 추가" 후 사용하시면 더 잘 열어보게 돼요.</span>
+    <div style="flex:1">
+      <div>알림은 이 앱을 열어둔 상태에서 확인돼요. iPhone은 공유 버튼 → "홈 화면에 추가" 후 사용하시면 더 잘 열어보게 돼요.</div>
+      <button class="backup-btn" style="margin-top:8px; flex:none; padding:6px 12px" onclick="sendTestNotification()">🔔 테스트 알림 보내기</button>
+    </div>
     <button onclick="document.getElementById('hint').style.display='none'">✕</button>
   </div>
   <div id="list"></div>
@@ -202,6 +208,7 @@ input[type=date]{ min-width:0; padding:10px 6px; font-size:13.5px; }
       <button class="btn-main" onclick="save()">저장하기</button>
       <div class="row">
         <button class="btn-sub" style="flex:1" onclick="closeModal()">취소</button>
+        <button class="btn-sub" id="doneBtn" style="flex:1; display:none" onclick="markUsedUp()">완료</button>
         <button class="btn-sub" id="deleteBtn" style="flex:1; display:none; color:var(--danger-text)" onclick="removeItem()">삭제</button>
       </div>
     </div>
@@ -286,12 +293,17 @@ function render(){
     done = done.filter(i=>i.name.toLowerCase().includes(q));
   }
   active.sort((a,b)=>ddayOf(a)-ddayOf(b));
+  const upcoming = active.filter(i=>ddayOf(i)>=0);
+  const expired = active.filter(i=>ddayOf(i)<0).sort((a,b)=>ddayOf(b)-ddayOf(a));
 
   if(items.length===0){
     list.innerHTML = '<div class="empty">아직 등록된 제품이 없어요.<br>오른쪽 아래 + 버튼으로 추가해보세요.</div>';
     return;
   }
-  let html = active.map(it=>cardHtml(it)).join('');
+  let html = upcoming.map(it=>cardHtml(it)).join('');
+  if(expired.length){
+    html += `<div class="section-title">만료됨</div>` + expired.map(it=>cardHtml(it)).join('');
+  }
   if(done.length){
     html += `<div class="section-title">사용완료</div>` + done.map(it=>cardHtml(it,true)).join('');
   }
@@ -341,6 +353,7 @@ function openModal(id){
   document.getElementById('errName').style.display='none';
   document.getElementById('errDate').style.display='none';
   document.getElementById('deleteBtn').style.display = id ? 'block':'none';
+  document.getElementById('doneBtn').style.display = id ? 'block':'none';
 
   if(id){
     const it = items.find(i=>i.id===id);
@@ -362,6 +375,7 @@ function openModal(id){
     });
     if(it.photo){ photoData = it.photo; document.getElementById('photoPreview').src=it.photo; document.getElementById('photoPreview').style.display='block'; document.getElementById('uploadLabel').style.display='none'; }
     document.getElementById('fMemo').value = it.memo || '';
+    document.getElementById('doneBtn').textContent = it.usedUp ? '완료 해제' : '완료';
   } else {
     document.getElementById('modalTitle').textContent='제품 등록';
     document.getElementById('fName').value='';
@@ -455,6 +469,13 @@ function save(){
   } else {
     items.push(data);
   }
+  save_store();
+  closeModal();
+  render();
+}
+function markUsedUp(){
+  if(!editingId) return;
+  items = items.map(i=> i.id===editingId ? {...i, usedUp: !i.usedUp} : i);
   save_store();
   closeModal();
   render();
@@ -557,6 +578,18 @@ function importData(e){
   };
   reader.readAsText(file, 'utf-8');
   e.target.value = '';
+}
+
+function sendTestNotification(){
+  if(!('Notification' in window)){ alert('이 브라우저는 알림을 지원하지 않아요.'); return; }
+  const fire = () => new Notification('🧴 Beauty4MJ 알림 테스트', { body: '이런 모양으로 떠요! 실제로는 유통기한 임박 시 자동으로 알려드려요.' });
+  if(Notification.permission === 'granted'){
+    fire();
+  } else if(Notification.permission === 'denied'){
+    alert('알림이 차단되어 있어요. iPhone은 설정 > Safari(또는 이 앱) > 알림에서 허용해주세요.');
+  } else {
+    Notification.requestPermission().then(p=>{ if(p==='granted') fire(); });
+  }
 }
 
 // 알림 체크 (앱이 열려 있을 때만 동작)
