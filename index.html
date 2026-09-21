@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Beauty 4 MJ</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f9d6e'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A7%B4%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237d6fa3'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A7%B4%3C/text%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="유통기한">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%99%94%EC%9E%A5%ED%92%88%20%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%20%EA%B4%80%EB%A6%AC%22%2C%22short_name%22%3A%22%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fdfaf6%22%2C%22theme_color%22%3A%22%234f9d6e%22%7D">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%99%94%EC%9E%A5%ED%92%88%20%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%20%EA%B4%80%EB%A6%AC%22%2C%22short_name%22%3A%22%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fdfaf6%22%2C%22theme_color%22%3A%22%237d6fa3%22%7D">
 <style>
 :root{
   --bg:#fdfaf6; --card:#ffffff; --border:#ece6dd; --text:#2c2c2a; --sub:#8a877e; --muted:#b4b2a9;
-  --accent:#4f9d6e; --accent-bg:#e7f3ea; --accent-text:#1f5c37;
+  --accent:#7d6fa3; --accent-bg:#efebf5; --accent-text:#453a63;
+  --accent2:#8ea055; --accent2-bg:#eef2e2; --accent2-text:#4b5a26;
   --danger-bg:#fcebeb; --danger-text:#791f1f;
   --warn-bg:#faeeda; --warn-text:#633806;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
@@ -20,14 +21,16 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
-    --accent:#7cc99a; --accent-bg:#163b26; --accent-text:#b9e8cb;
+    --accent:#b3a5d6; --accent-bg:#352c4a; --accent-text:#dcd3ee;
+    --accent2:#b9cf7e; --accent2-bg:#3a4520; --accent2-text:#d8e6b0;
     --danger-bg:#501313; --danger-text:#f7c1c1;
     --warn-bg:#412402; --warn-text:#fac775;
   }
 }
 :root[data-theme="dark"]{
   --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
-  --accent:#7cc99a; --accent-bg:#163b26; --accent-text:#b9e8cb;
+  --accent:#b3a5d6; --accent-bg:#352c4a; --accent-text:#dcd3ee;
+  --accent2:#b9cf7e; --accent2-bg:#3a4520; --accent2-text:#d8e6b0;
   --danger-bg:#501313; --danger-text:#f7c1c1;
   --warn-bg:#412402; --warn-text:#fac775;
 }
@@ -47,7 +50,7 @@ header{
 h1{font-size:18px; font-weight:600; margin:0 0 10px}
 .chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px}
 .chip{flex:0 0 auto; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); white-space:nowrap}
-.chip.active{background:var(--text); color:var(--bg); border-color:var(--text)}
+.chip.active{background:var(--accent); color:#fff; border-color:var(--accent)}
 .backup-btn{flex:1; font-size:12px; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer}
 main{padding:14px 16px 100px}
 .hint{font-size:12px; color:var(--sub); background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start}
@@ -91,11 +94,11 @@ input[type=text],input[type=date],select{
 .upload input{position:absolute; inset:0; opacity:0}
 .row{display:flex; gap:8px}
 .btn-toggle{flex:1; text-align:center; padding:9px 0; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:13px; cursor:pointer}
-.btn-toggle.on{background:var(--text); color:var(--bg); border-color:var(--text)}
+.btn-toggle.on{background:var(--accent); color:#fff; border-color:var(--accent)}
 .pao-btn{flex:1; text-align:center; padding:9px 0; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; cursor:pointer}
 .pao-btn.on{background:var(--accent); color:#fff; border-color:var(--accent)}
 .chk{display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer; margin-right:6px}
-.chk.on{background:var(--accent-bg); color:var(--accent-text); border-color:transparent}
+.chk.on{background:var(--accent2-bg); color:var(--accent2-text); border-color:transparent}
 .actions{display:flex; gap:8px; margin-top:22px}
 .btn-main{flex:1; padding:13px; border-radius:11px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:600; cursor:pointer}
 .btn-sub{padding:13px 16px; border-radius:11px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:14px; cursor:pointer}
