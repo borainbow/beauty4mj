@@ -52,7 +52,7 @@ h1{font-size:18px; font-weight:600; margin:0 0 10px}
 .chip{flex:0 0 auto; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); white-space:nowrap}
 .chip.active{background:var(--accent); color:#fff; border-color:var(--accent)}
 .toggle-btn.active{background:var(--accent2-bg); color:var(--accent2-strong); border-color:transparent}
-.search-input{width:100%; margin-bottom:8px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:16px}
+.search-input{width:100%; margin-bottom:8px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:12px}
 .backup-btn{flex:1; font-size:12px; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer}
 main{padding:14px 16px 100px}
 .hint{font-size:12px; color:var(--sub); background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start}
@@ -115,11 +115,14 @@ input[type=date]{ min-width:0; padding:10px 8px; }
   <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px">
     <div class="chips" id="chips" style="flex:1; margin:0"></div>
     <div style="position:relative; flex:0 0 auto">
-      <input type="text" id="searchInput" class="search-input" placeholder="🔍 검색" oninput="onSearch(event)" style="margin-bottom:0; width:110px; text-align:right; padding-right:26px">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 검색" oninput="onSearch(event)" style="margin-bottom:0; width:130px; text-align:right; padding-right:26px">
       <button id="searchClearBtn" onclick="clearSearch()" style="display:none; position:absolute; right:4px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--sub); font-size:15px; line-height:1; padding:4px; cursor:pointer">✕</button>
     </div>
   </div>
-  <button id="inuseToggleBtn" class="chip toggle-btn" style="margin-top:6px" onclick="toggleInuseOnly()">사용중만 보기</button>
+  <div style="display:flex; gap:6px; margin-top:6px">
+    <button id="inuseToggleBtn" class="chip toggle-btn" onclick="toggleInuseOnly()">사용중만 보기</button>
+    <button id="archiveToggleBtn" class="chip toggle-btn" onclick="toggleArchiveOnly()">지난 기록</button>
+  </div>
 </header>
 
 <main>
@@ -134,7 +137,7 @@ input[type=date]{ min-width:0; padding:10px 8px; }
 </main>
 
 <footer style="text-align:center; padding:28px 16px calc(26px + var(--safe-b)); color:var(--sub); font-size:12px; border-top:1px solid var(--border); margin-top:8px">
-  <div style="font-size:13px; color:var(--text); font-weight:600; letter-spacing:.2px; margin-bottom:2px">🎀 Birthday Gift for MJ</div>
+  <div style="font-size:13px; color:var(--text); font-weight:600; letter-spacing:.2px; margin-bottom:2px">Birthday Gift for MJ</div>
   <div style="margin-bottom:16px">with💜 RAINBOW</div>
   <div style="display:flex; gap:8px; justify-content:center">
     <button class="backup-btn" style="flex:none; padding:7px 14px" onclick="exportData()">CSV 다운로드</button>
@@ -238,7 +241,7 @@ if(items.length===0){
 }
 let currentFilter = '전체';
 let searchQuery = '';
-let inuseOnly = false;
+let viewMode = 'all'; // 'all' | 'inuse' | 'archive'
 let editingId = null;
 let photoData = null;
 let curMethod = 'pao';
@@ -288,21 +291,19 @@ function clearSearch(){
   document.getElementById('searchClearBtn').style.display = 'none';
   render();
 }
-function toggleInuseOnly(){ inuseOnly = !inuseOnly; render(); }
+function toggleInuseOnly(){ viewMode = (viewMode==='inuse') ? 'all' : 'inuse'; render(); }
+function toggleArchiveOnly(){ viewMode = (viewMode==='archive') ? 'all' : 'archive'; render(); }
 
 function render(){
   renderChips();
-  document.getElementById('inuseToggleBtn').classList.toggle('active', inuseOnly);
+  document.getElementById('inuseToggleBtn').classList.toggle('active', viewMode==='inuse');
+  document.getElementById('archiveToggleBtn').classList.toggle('active', viewMode==='archive');
   const list = document.getElementById('list');
   let active = items.filter(i=>!i.usedUp);
   let done = items.filter(i=>i.usedUp);
   if(currentFilter!=='전체'){
     active = active.filter(i=>i.category===currentFilter);
     done = done.filter(i=>i.category===currentFilter);
-  }
-  if(inuseOnly){
-    active = active.filter(i=>i.status==='inuse');
-    done = [];
   }
   if(searchQuery.trim()){
     const q = searchQuery.trim().toLowerCase();
@@ -317,14 +318,27 @@ function render(){
     list.innerHTML = '<div class="empty">아직 등록된 제품이 없어요.<br>오른쪽 아래 + 버튼으로 추가해보세요.</div>';
     return;
   }
-  let html = upcoming.map(it=>cardHtml(it)).join('');
-  if(expired.length){
-    html += `<div class="section-title">만료됨</div>` + expired.map(it=>cardHtml(it)).join('');
+
+  let html = '';
+  if(viewMode==='archive'){
+    const archive = [...expired, ...done];
+    html = archive.length
+      ? archive.map(it=>cardHtml(it, it.usedUp)).join('')
+      : '<div class="empty">지난 기록이 없어요.</div>';
+  } else {
+    const upcomingFiltered = viewMode==='inuse' ? upcoming.filter(i=>i.status==='inuse') : upcoming;
+    html = upcomingFiltered.map(it=>cardHtml(it)).join('');
+    if(viewMode!=='inuse'){
+      const archive = [...expired, ...done];
+      if(archive.length){
+        html += `<div class="section-title">지난 기록</div>` + archive.map(it=>cardHtml(it, it.usedUp)).join('');
+      }
+    }
+    if(!html){
+      html = `<div class="empty">${searchQuery.trim() ? '검색 결과가 없어요.' : '해당 조건에 맞는 제품이 없어요.'}</div>`;
+    }
   }
-  if(done.length){
-    html += `<div class="section-title">사용완료</div>` + done.map(it=>cardHtml(it,true)).join('');
-  }
-  list.innerHTML = html || `<div class="empty">${searchQuery.trim() ? '검색 결과가 없어요.' : '해당 조건에 맞는 제품이 없어요.'}</div>`;
+  list.innerHTML = html;
 }
 
 function cardHtml(it, isDone){
@@ -343,7 +357,7 @@ function cardHtml(it, isDone){
     bar = `<div style="margin-top:12px; position:relative; height:20px">
       <div style="position:absolute; top:50%; left:0; right:0; height:4px; background:var(--border); border-radius:999px; transform:translateY(-50%)"></div>
       <div style="position:absolute; top:50%; left:0; width:${pct}%; height:4px; background:${barColor}; border-radius:999px; transform:translateY(-50%)"></div>
-      <div style="position:absolute; top:50%; left:${pct}%; transform:translate(-50%,-50%); background:${barColor}; color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.15)">${badgeLabel}</div>
+      <div style="position:absolute; top:50%; left:${pct}%; transform:translate(-50%,-50%); background:${barColor}; color:#fff; font-size:11px; font-weight:400; padding:3px 8px; border-radius:999px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.15)">${badgeLabel}</div>
     </div>`;
   }
 
@@ -464,8 +478,8 @@ function onPhoto(e){
     const img = new Image();
     img.onload = function(){
       const canvas = document.createElement('canvas');
-      const maxW = 300;
-      const scale = Math.min(1, maxW/img.width);
+      const maxW = 300, maxH = 300;
+      const scale = Math.min(1, maxW/img.width, maxH/img.height);
       canvas.width = img.width*scale; canvas.height = img.height*scale;
       canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
       photoData = canvas.toDataURL('image/jpeg', 0.7);
