@@ -51,6 +51,7 @@ h1{font-size:18px; font-weight:600; margin:0 0 10px}
 .chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px}
 .chip{flex:0 0 auto; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); white-space:nowrap}
 .chip.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+.search-input{width:100%; margin-bottom:8px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px}
 .backup-btn{flex:1; font-size:12px; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer}
 main{padding:14px 16px 100px}
 .hint{font-size:12px; color:var(--sub); background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start}
@@ -86,6 +87,7 @@ input[type=text],input[type=date],select{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
   background:var(--card); color:var(--text); font-size:14px;
 }
+input[type=date]{ min-width:0; padding:10px 6px; font-size:13.5px; }
 .upload{
   display:flex; align-items:center; justify-content:center; gap:8px; height:80px; border-radius:10px;
   border:1px dashed var(--muted); color:var(--sub); font-size:13px; position:relative; overflow:hidden;
@@ -98,7 +100,7 @@ input[type=text],input[type=date],select{
 .pao-btn{flex:1; text-align:center; padding:9px 0; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; cursor:pointer}
 .pao-btn.on{background:var(--accent); color:#fff; border-color:var(--accent)}
 .chk{display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer; margin-right:6px}
-.chk.on{background:var(--accent2-bg); color:var(--accent2-text); border-color:transparent}
+.chk.on{background:var(--accent-bg); color:var(--accent-text); border-color:transparent}
 .actions{display:flex; gap:8px; margin-top:22px}
 .btn-main{flex:1; padding:13px; border-radius:11px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:600; cursor:pointer}
 .btn-sub{padding:13px 16px; border-radius:11px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:14px; cursor:pointer}
@@ -109,7 +111,9 @@ input[type=text],input[type=date],select{
 
 <header>
   <h1>Beauty 4 MJ</h1>
+  <input type="text" id="searchInput" class="search-input" placeholder="🔍 제품 이름으로 검색" oninput="onSearch(event)">
   <div class="chips" id="chips"></div>
+  <button id="inuseToggleBtn" class="chip" style="margin-top:6px" onclick="toggleInuseOnly()">사용중만 보기</button>
 </header>
 
 <main>
@@ -221,6 +225,8 @@ if(items.length===0){
   localStorage.setItem(STORE_KEY, JSON.stringify(items));
 }
 let currentFilter = '전체';
+let searchQuery = '';
+let inuseOnly = false;
 let editingId = null;
 let photoData = null;
 let curMethod = 'pao';
@@ -247,7 +253,7 @@ function formatDate(d){
   return `${y}.${m}.${day}`;
 }
 
-const CATEGORY_ORDER = ['스킨케어','클렌징','선크림','색조'];
+const CATEGORY_ORDER = ['스킨케어','클렌징','선크림','색조','기타'];
 function renderChips(){
   const present = [...new Set(items.map(i=>i.category))];
   const extra = present.filter(c=>!CATEGORY_ORDER.includes(c));
@@ -258,15 +264,26 @@ function renderChips(){
   ).join('');
 }
 function setFilter(c){ currentFilter = c; render(); }
+function onSearch(e){ searchQuery = e.target.value; render(); }
+function toggleInuseOnly(){ inuseOnly = !inuseOnly; render(); }
 
 function render(){
   renderChips();
+  document.getElementById('inuseToggleBtn').classList.toggle('active', inuseOnly);
   const list = document.getElementById('list');
   let active = items.filter(i=>!i.usedUp);
   let done = items.filter(i=>i.usedUp);
   if(currentFilter!=='전체'){
     active = active.filter(i=>i.category===currentFilter);
     done = done.filter(i=>i.category===currentFilter);
+  }
+  if(inuseOnly){
+    active = active.filter(i=>i.status==='inuse');
+  }
+  if(searchQuery.trim()){
+    const q = searchQuery.trim().toLowerCase();
+    active = active.filter(i=>i.name.toLowerCase().includes(q));
+    done = done.filter(i=>i.name.toLowerCase().includes(q));
   }
   active.sort((a,b)=>ddayOf(a)-ddayOf(b));
 
@@ -278,7 +295,7 @@ function render(){
   if(done.length){
     html += `<div class="section-title">사용완료</div>` + done.map(it=>cardHtml(it,true)).join('');
   }
-  list.innerHTML = html || '<div class="empty">해당 카테고리에 등록된 제품이 없어요.</div>';
+  list.innerHTML = html || `<div class="empty">${searchQuery.trim() ? '검색 결과가 없어요.' : '해당 조건에 맞는 제품이 없어요.'}</div>`;
 }
 
 function cardHtml(it, isDone){
@@ -293,7 +310,7 @@ function cardHtml(it, isDone){
     const barColor = dday<=30 ? 'var(--danger-text)' : 'var(--accent)';
     const rawPct = Math.max(0, Math.min(60, dday)) / 60 * 100;
     const pct = Math.max(8, Math.min(92, rawPct));
-    const badgeLabel = dday<0 ? '만료' : (dday===0 ? '오늘' : `${dday}일`);
+    const badgeLabel = dday<0 ? `D+${-dday}` : `D-${dday}`;
     bar = `<div style="margin-top:12px; position:relative; height:20px">
       <div style="position:absolute; top:50%; left:0; right:0; height:4px; background:var(--border); border-radius:999px; transform:translateY(-50%)"></div>
       <div style="position:absolute; top:50%; left:0; width:${pct}%; height:4px; background:${barColor}; border-radius:999px; transform:translateY(-50%)"></div>
