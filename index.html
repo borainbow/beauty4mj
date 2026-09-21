@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>유통기한 관리</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f9d6e'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A7%B4%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="유통기한">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%99%94%EC%9E%A5%ED%92%88%20%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%20%EA%B4%80%EB%A6%AC%22%2C%22short_name%22%3A%22%EC%9C%A0%ED%86%B5%EA%B8%B0%ED%95%9C%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fdfaf6%22%2C%22theme_color%22%3A%22%234f9d6e%22%7D">
+<style>
+:root{
+  --bg:#fdfaf6; --card:#ffffff; --border:#ece6dd; --text:#2c2c2a; --sub:#8a877e; --muted:#b4b2a9;
+  --accent:#4f9d6e; --accent-bg:#e7f3ea; --accent-text:#1f5c37;
+  --danger-bg:#fcebeb; --danger-text:#791f1f;
+  --warn-bg:#faeeda; --warn-text:#633806;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
+    --accent:#7cc99a; --accent-bg:#163b26; --accent-text:#b9e8cb;
+    --danger-bg:#501313; --danger-text:#f7c1c1;
+    --warn-bg:#412402; --warn-text:#fac775;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1b19; --card:#26241f; --border:#3a3833; --text:#f1efe8; --sub:#b4b2a9; --muted:#7c7a72;
+  --accent:#7cc99a; --accent-bg:#163b26; --accent-text:#b9e8cb;
+  --danger-bg:#501313; --danger-text:#f7c1c1;
+  --warn-bg:#412402; --warn-text:#fac775;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:var(--safe-t)}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  padding-top:var(--safe-t); padding-bottom:var(--safe-b);
+}
+header{
+  position:sticky; top:0; padding-top:calc(var(--safe-t) + 14px);
+  background:var(--bg); z-index:5; padding-left:16px; padding-right:16px; padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+h1{font-size:18px; font-weight:600; margin:0 0 10px}
+.chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px}
+.chip{flex:0 0 auto; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); white-space:nowrap}
+.chip.active{background:var(--text); color:var(--bg); border-color:var(--text)}
+.backup-btn{flex:1; font-size:12px; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer}
+main{padding:14px 16px 100px}
+.hint{font-size:12px; color:var(--sub); background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start}
+.hint button{margin-left:auto; border:none; background:none; color:var(--sub); font-size:16px; padding:0 2px; cursor:pointer}
+.section-title{font-size:12px; color:var(--sub); margin:18px 0 8px; font-weight:600}
+.card{display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; margin-bottom:8px; cursor:pointer; border:1px solid var(--border)}
+.card.neutral{background:var(--card)}
+.card.warn{background:var(--warn-bg); border-color:transparent}
+.card.danger{background:var(--danger-bg); border-color:transparent}
+.card.done{opacity:.55}
+.thumb{width:42px; height:42px; border-radius:9px; background:var(--border); flex:0 0 auto; object-fit:cover}
+.item-name{font-size:14px; font-weight:600; margin:0}
+.item-sub{font-size:11.5px; color:var(--sub); margin:2px 0 0}
+.dday{font-size:13px; font-weight:700; flex:0 0 auto}
+.card.neutral .dday{color:var(--sub)}
+.card.warn .dday{color:var(--warn-text)}
+.card.danger .dday{color:var(--danger-text)}
+.empty{text-align:center; color:var(--sub); font-size:13px; padding:60px 20px}
+.fab{
+  position:fixed; right:18px; bottom:calc(20px + var(--safe-b)); width:54px; height:54px; border-radius:50%;
+  background:var(--accent); color:#fff; border:none; font-size:26px; box-shadow:0 4px 14px rgba(0,0,0,.2);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;
+}
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-end; z-index:20}
+.overlay.open{display:flex}
+.sheet{
+  background:var(--bg); width:100%; max-height:88vh; overflow-y:auto; border-radius:18px 18px 0 0;
+  padding:18px 18px calc(24px + var(--safe-b));
+}
+.sheet h2{font-size:16px; margin:0 0 16px}
+label{display:block; font-size:12px; color:var(--sub); margin:14px 0 6px}
+input[type=text],input[type=date],select{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--card); color:var(--text); font-size:14px;
+}
+.upload{
+  display:flex; align-items:center; justify-content:center; gap:8px; height:80px; border-radius:10px;
+  border:1px dashed var(--muted); color:var(--sub); font-size:13px; position:relative; overflow:hidden;
+}
+.upload img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.upload input{position:absolute; inset:0; opacity:0}
+.row{display:flex; gap:8px}
+.btn-toggle{flex:1; text-align:center; padding:9px 0; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:13px; cursor:pointer}
+.btn-toggle.on{background:var(--text); color:var(--bg); border-color:var(--text)}
+.pao-btn{flex:1; text-align:center; padding:9px 0; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; cursor:pointer}
+.pao-btn.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+.chk{display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--sub); cursor:pointer; margin-right:6px}
+.chk.on{background:var(--accent-bg); color:var(--accent-text); border-color:transparent}
+.actions{display:flex; gap:8px; margin-top:22px}
+.btn-main{flex:1; padding:13px; border-radius:11px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:600; cursor:pointer}
+.btn-sub{padding:13px 16px; border-radius:11px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:14px; cursor:pointer}
+.err{color:var(--danger-text); font-size:12px; margin-top:4px; display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>내 화장품</h1>
+  <div style="display:flex; gap:8px; margin-bottom:10px">
+    <button class="backup-btn" onclick="exportData()">📥 백업 다운로드</button>
+    <button class="backup-btn" onclick="document.getElementById('importInput').click()">📤 불러오기</button>
+    <input type="file" id="importInput" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <div class="hint" id="hint">
+    <span>알림은 이 앱을 열어둔 상태에서 확인돼요. iPhone은 공유 버튼 → "홈 화면에 추가" 후 사용하시면 더 잘 열어보게 돼요.</span>
+    <button onclick="document.getElementById('hint').style.display='none'">✕</button>
+  </div>
+  <div id="list"></div>
+</main>
+
+<button class="fab" onclick="openModal()">+</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2 id="modalTitle">제품 등록</h2>
+
+    <label>사진 (선택)</label>
+    <div class="upload" id="uploadBox">
+      <span id="uploadLabel">📷 사진 추가</span>
+      <img id="photoPreview" style="display:none">
+      <input type="file" accept="image/*" id="photoInput" onchange="onPhoto(event)">
+    </div>
+
+    <label>제품명</label>
+    <input type="text" id="fName" placeholder="예: 토너 패드">
+    <div class="err" id="errName">제품명을 입력해주세요.</div>
+
+    <label>카테고리</label>
+    <select id="fCategory">
+      <option value="스킨케어">스킨케어</option>
+      <option value="색조">색조</option>
+      <option value="선크림">선크림</option>
+      <option value="클렌징">클렌징</option>
+      <option value="기타">기타</option>
+    </select>
+
+    <label>상태</label>
+    <div class="row">
+      <div class="btn-toggle on" id="statusUnopened" onclick="setStatus('unopened')">미개봉</div>
+      <div class="btn-toggle" id="statusInuse" onclick="setStatus('inuse')">사용중</div>
+    </div>
+
+    <label>사용기한 설정 방식</label>
+    <div class="row">
+      <div class="btn-toggle on" id="methodPao" onclick="setMethod('pao')">개봉일+기간</div>
+      <div class="btn-toggle" id="methodDate" onclick="setMethod('date')">직접입력</div>
+    </div>
+
+    <div id="paoFields">
+      <label>개봉일</label>
+      <input type="date" id="fOpenDate">
+      <label>사용기한(PAO)</label>
+      <div class="row">
+        <div class="pao-btn" data-m="6" onclick="setPao(6)">6개월</div>
+        <div class="pao-btn on" data-m="12" onclick="setPao(12)">12개월</div>
+        <div class="pao-btn" data-m="24" onclick="setPao(24)">24개월</div>
+      </div>
+    </div>
+    <div id="dateFields" style="display:none">
+      <label>유통기한</label>
+      <input type="date" id="fDirectDate">
+    </div>
+    <div class="err" id="errDate">날짜를 확인해주세요.</div>
+
+    <label>알림 받을 시점</label>
+    <div>
+      <span class="chk on" data-d="30" onclick="toggleNotify(30)">D-30</span>
+      <span class="chk on" data-d="7" onclick="toggleNotify(7)">D-7</span>
+      <span class="chk" data-d="1" onclick="toggleNotify(1)">D-1</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-sub" onclick="closeModal()">취소</button>
+      <button class="btn-main" onclick="save()">저장하기</button>
+    </div>
+    <button class="btn-sub" id="deleteBtn" style="width:100%;margin-top:8px;display:none;color:var(--danger-text)" onclick="removeItem()">삭제</button>
+  </div>
+</div>
+
+<script>
+const STORE_KEY='cosmetics-expiry-items';
+let items = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+if(items.length===0){
+  items = [
+    {id:'seed1', name:'랑끄 워터팡 누드시킨 파데 크림', category:'색조', status:'unopened', method:'date', directDate:'2027-02-16', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed2', name:'마티스 글리코아미노글리칸즈', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-03-11', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed3', name:'메노킨 30초 퀵 버블 마스크 클리어', category:'클렌징', status:'inuse', method:'date', directDate:'2027-09-26', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed4', name:'마녀공장 비피다 바이옴 아쿠아 베리어 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-10-15', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed5', name:'썸블라썸 스피큘러 아이백 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-11-23', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed6', name:'라센느 로에 큐어 인텐시브 이엑스 크림', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-02', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed7', name:'성분에디터 그린토마토 포어 리프팅 앰플토너', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-11', notifyDays:[30,7], photo:null, usedUp:false},
+    {id:'seed8', name:'시드물 웰빙 녹차 판테놀 스킨', category:'스킨케어', status:'unopened', method:'date', directDate:'2027-12-21', notifyDays:[30,7], photo:null, usedUp:false}
+  ];
+  localStorage.setItem(STORE_KEY, JSON.stringify(items));
+}
+let currentFilter = '전체';
+let editingId = null;
+let photoData = null;
+let curMethod = 'pao';
+let curStatus = 'unopened';
+let curPao = 12;
+let curNotify = [30,7];
+
+function save_store(){ localStorage.setItem(STORE_KEY, JSON.stringify(items)); }
+
+function getExpiry(it){
+  if(it.method==='date') return new Date(it.directDate);
+  const d = new Date(it.openDate);
+  d.setMonth(d.getMonth()+it.paoMonths);
+  return d;
+}
+function ddayOf(it){
+  const exp = getExpiry(it);
+  const today = new Date(); today.setHours(0,0,0,0);
+  exp.setHours(0,0,0,0);
+  return Math.round((exp-today)/86400000);
+}
+
+function renderChips(){
+  const cats = ['전체', ...new Set(items.map(i=>i.category))];
+  if(cats.length===1) cats.push('스킨케어','색조','선크림','클렌징');
+  const box = document.getElementById('chips');
+  box.innerHTML = [...new Set(cats)].map(c=>
+    `<div class="chip ${c===currentFilter?'active':''}" onclick="setFilter('${c}')">${c}</div>`
+  ).join('');
+}
+function setFilter(c){ currentFilter = c; render(); }
+
+function render(){
+  renderChips();
+  const list = document.getElementById('list');
+  let active = items.filter(i=>!i.usedUp);
+  let done = items.filter(i=>i.usedUp);
+  if(currentFilter!=='전체'){
+    active = active.filter(i=>i.category===currentFilter);
+    done = done.filter(i=>i.category===currentFilter);
+  }
+  active.sort((a,b)=>ddayOf(a)-ddayOf(b));
+
+  if(items.length===0){
+    list.innerHTML = '<div class="empty">아직 등록된 제품이 없어요.<br>오른쪽 아래 + 버튼으로 추가해보세요.</div>';
+    return;
+  }
+  let html = active.map(it=>cardHtml(it)).join('');
+  if(done.length){
+    html += `<div class="section-title">사용완료</div>` + done.map(it=>cardHtml(it,true)).join('');
+  }
+  list.innerHTML = html || '<div class="empty">해당 카테고리에 등록된 제품이 없어요.</div>';
+}
+
+function cardHtml(it, isDone){
+  const dday = ddayOf(it);
+  let cls='neutral';
+  if(!isDone){ if(dday<=7) cls='danger'; else if(dday<=30) cls='warn'; }
+  const label = isDone ? '사용완료' : (dday<0 ? `D+${-dday}` : `D-${dday}`);
+  const thumb = it.photo ? `<img class="thumb" src="${it.photo}">` : `<div class="thumb"></div>`;
+  return `<div class="card ${cls} ${isDone?'done':''}" onclick="openModal('${it.id}')">
+    ${thumb}
+    <div style="flex:1">
+      <p class="item-name">${escapeHtml(it.name)}</p>
+      <p class="item-sub">${it.category} · ${it.status==='unopened'?'미개봉':'사용중'}</p>
+    </div>
+    <div class="dday">${label}</div>
+  </div>`;
+}
+function escapeHtml(s){ return s.replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+function openModal(id){
+  editingId = id || null;
+  photoData = null;
+  document.getElementById('photoInput').value='';
+  document.getElementById('photoPreview').style.display='none';
+  document.getElementById('uploadLabel').style.display='inline';
+  document.getElementById('errName').style.display='none';
+  document.getElementById('errDate').style.display='none';
+  document.getElementById('deleteBtn').style.display = id ? 'block':'none';
+
+  if(id){
+    const it = items.find(i=>i.id===id);
+    document.getElementById('modalTitle').textContent='제품 수정';
+    document.getElementById('fName').value = it.name;
+    document.getElementById('fCategory').value = it.category;
+    setStatus(it.status);
+    setMethod(it.method);
+    if(it.method==='pao'){
+      document.getElementById('fOpenDate').value = it.openDate;
+      setPao(it.paoMonths);
+    } else {
+      document.getElementById('fDirectDate').value = it.directDate;
+    }
+    curNotify = [...it.notifyDays];
+    document.querySelectorAll('.chk').forEach(el=>{
+      const d = parseInt(el.dataset.d);
+      el.classList.toggle('on', curNotify.includes(d));
+    });
+    if(it.photo){ photoData = it.photo; document.getElementById('photoPreview').src=it.photo; document.getElementById('photoPreview').style.display='block'; document.getElementById('uploadLabel').style.display='none'; }
+  } else {
+    document.getElementById('modalTitle').textContent='제품 등록';
+    document.getElementById('fName').value='';
+    document.getElementById('fCategory').value='스킨케어';
+    setStatus('unopened');
+    setMethod('pao');
+    setPao(12);
+    document.getElementById('fOpenDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('fDirectDate').value='';
+    curNotify = [30,7];
+    document.querySelectorAll('.chk').forEach(el=>{
+      el.classList.toggle('on', curNotify.includes(parseInt(el.dataset.d)));
+    });
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+
+function setStatus(s){
+  curStatus = s;
+  document.getElementById('statusUnopened').classList.toggle('on', s==='unopened');
+  document.getElementById('statusInuse').classList.toggle('on', s==='inuse');
+}
+function setMethod(m){
+  curMethod = m;
+  document.getElementById('methodPao').classList.toggle('on', m==='pao');
+  document.getElementById('methodDate').classList.toggle('on', m==='date');
+  document.getElementById('paoFields').style.display = m==='pao' ? 'block':'none';
+  document.getElementById('dateFields').style.display = m==='date' ? 'block':'none';
+}
+function setPao(m){
+  curPao = m;
+  document.querySelectorAll('.pao-btn').forEach(el=>el.classList.toggle('on', parseInt(el.dataset.m)===m));
+}
+function toggleNotify(d){
+  const idx = curNotify.indexOf(d);
+  if(idx>-1) curNotify.splice(idx,1); else curNotify.push(d);
+  document.querySelectorAll('.chk').forEach(el=>{
+    if(parseInt(el.dataset.d)===d) el.classList.toggle('on', curNotify.includes(d));
+  });
+}
+function onPhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const maxW = 300;
+      const scale = Math.min(1, maxW/img.width);
+      canvas.width = img.width*scale; canvas.height = img.height*scale;
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      photoData = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('photoPreview').src = photoData;
+      document.getElementById('photoPreview').style.display='block';
+      document.getElementById('uploadLabel').style.display='none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function save(){
+  const name = document.getElementById('fName').value.trim();
+  document.getElementById('errName').style.display = name ? 'none':'block';
+  let dateOk = true;
+  let openDate, directDate;
+  if(curMethod==='pao'){
+    openDate = document.getElementById('fOpenDate').value;
+    dateOk = !!openDate;
+  } else {
+    directDate = document.getElementById('fDirectDate').value;
+    dateOk = !!directDate;
+  }
+  document.getElementById('errDate').style.display = dateOk ? 'none':'block';
+  if(!name || !dateOk) return;
+
+  const data = {
+    id: editingId || ('id'+Date.now()),
+    name, category: document.getElementById('fCategory').value,
+    status: curStatus, method: curMethod,
+    openDate, paoMonths: curPao, directDate,
+    notifyDays: [...curNotify], photo: photoData,
+    usedUp: editingId ? (items.find(i=>i.id===editingId).usedUp) : false
+  };
+  if(editingId){
+    items = items.map(i=>i.id===editingId ? data : i);
+  } else {
+    items.push(data);
+  }
+  save_store();
+  closeModal();
+  render();
+}
+function removeItem(){
+  if(!editingId) return;
+  if(confirm('이 제품을 삭제할까요?')){
+    items = items.filter(i=>i.id!==editingId);
+    save_store();
+    closeModal();
+    render();
+  }
+}
+
+function exportData(){
+  const data = JSON.stringify(items, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `유통기한백업_${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      if(!Array.isArray(parsed)) throw new Error('invalid');
+      const withNewIds = parsed.map(it=>({...it, id:'id'+Date.now()+Math.random().toString(36).slice(2,7)}));
+      items = items.concat(withNewIds);
+      save_store();
+      render();
+      alert(`${withNewIds.length}개 항목을 불러왔어요.`);
+    }catch(err){
+      alert('올바른 백업 파일이 아니에요.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// 알림 체크 (앱이 열려 있을 때만 동작)
+function checkNotifications(){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const today = new Date().toISOString().slice(0,10);
+  const lastCheck = localStorage.getItem('notify-check-'+today);
+  if(lastCheck) return;
+  items.filter(i=>!i.usedUp).forEach(it=>{
+    const d = ddayOf(it);
+    if(it.notifyDays.includes(d)){
+      new Notification('유통기한 임박', { body: `${it.name} · D-${d}` });
+    }
+  });
+  localStorage.setItem('notify-check-'+today, '1');
+}
+if('Notification' in window && Notification.permission==='default'){
+  setTimeout(()=>{ Notification.requestPermission().then(()=>checkNotifications()); }, 800);
+} else {
+  checkNotifications();
+}
+
+render();
+</script>
+</body>
+</html>
