@@ -97,7 +97,7 @@ input[type=text],input[type=date],select{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
   background:var(--card); color:var(--text); font-size:16px;
 }
-input[type=date]{ min-width:0; padding:10px 8px; overflow:hidden; }
+input[type=date]{ min-width:0; padding:10px 8px 10px 10px; overflow:hidden; }
 input[type=date]::-webkit-datetime-edit,
 input[type=date]::-webkit-datetime-edit-fields-wrapper,
 input[type=date]::-webkit-datetime-edit-text,
@@ -105,8 +105,9 @@ input[type=date]::-webkit-datetime-edit-month-field,
 input[type=date]::-webkit-datetime-edit-day-field,
 input[type=date]::-webkit-datetime-edit-year-field{
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif !important;
+  font-size:14px !important;
 }
-input[type=date]::-webkit-calendar-picker-indicator{ margin-left:2px; padding:4px; flex-shrink:0; }
+input[type=date]::-webkit-calendar-picker-indicator{ margin-left:2px; padding:2px; flex-shrink:0; transform:scale(.8); transform-origin:right center; }
 .upload{
   display:flex; align-items:center; justify-content:center; gap:8px; height:80px; border-radius:10px;
   border:1px dashed var(--muted); color:var(--sub); font-size:13px; position:relative; overflow:hidden;
